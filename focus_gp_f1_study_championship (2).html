@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus GP - Suzukat & Dog Vet Championship</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Orbitron & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        racing: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        redbull: {
+                            main: '#0600EF',
+                            accent: '#FCD700',
+                            border: '#1E3A8A'
+                        },
+                        ferrari: {
+                            main: '#E8002D',
+                            dark: '#A60017',
+                            accent: '#FFF200'
+                        },
+                        mercedes: {
+                            main: '#27F4D2',
+                            silver: '#E1E6E6',
+                            dark: '#111827'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .bg-carbon {
+            background-color: #0b0d10;
+            background-image: 
+                radial-gradient(#1e293b 15%, transparent 16%),
+                radial-gradient(#1e293b 15%, transparent 16%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+
+        .racing-glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.95); }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 0.8s infinite;
+        }
+
+        .f1-light {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.9) inset;
+        }
+        .f1-light.active {
+            box-shadow: 0 0 25px #ff0000, 0 0 45px #ff0000;
+            background-color: #ff0000 !important;
+        }
+        .f1-light.green {
+            box-shadow: 0 0 25px #00ff00, 0 0 45px #00ff00;
+            background-color: #00ff00 !important;
+        }
+
+        .track-container {
+            position: relative;
+            width: 100%;
+            background: radial-gradient(circle at center, #0f172a 0%, #060911 100%);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full bg-carbon text-slate-100 font-sans flex flex-col justify-between overflow-x-hidden selection:bg-red-600 selection:text-white">
+
+    <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="bg-red-600 text-white font-racing font-black px-3 py-1 rounded italic text-xl tracking-wider shadow-lg shadow-red-600/30 flex items-center gap-2">
+                    <i class="fa-solid fa-paw"></i> FOCUS GP
+                </div>
+                <span class="text-xs font-racing uppercase tracking-widest text-slate-400 hidden sm:inline-block border-l border-slate-800 pl-3">
+                    CIRCUITO INTERNACIONAL DE SUZUKAT & DOG 🐾
+                </span>
+            </div>
+
+            <!-- Current Active Driver Selector Quick Bar -->
+            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full p-1.5">
+                <span class="text-xs text-slate-400 font-racing px-2 hidden md:inline">PILOTO VET:</span>
+                
+                <button onclick="setActiveDriver('max')" id="nav-btn-max" class="driver-nav-btn px-3 py-1.5 rounded-full text-xs font-racing font-bold transition flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span> VER
+                </button>
+                <button onclick="setActiveDriver('charles')" id="nav-btn-charles" class="driver-nav-btn px-3 py-1.5 rounded-full text-xs font-racing font-bold transition flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> LEC
+                </button>
+                <button onclick="setActiveDriver('george')" id="nav-btn-george" class="driver-nav-btn px-3 py-1.5 rounded-full text-xs font-racing font-bold transition flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-400 inline-block"></span> RUS
+                </button>
+            </div>
+
+            <!-- Global Action Controls & Red Flag Reset -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition" title="Alternar Sonidos de Motor y Maullidos">
+                    <i class="fa-solid fa-volume-high text-sm text-emerald-400"></i>
+                </button>
+                <button onclick="openManualAddModal()" class="px-3 py-1.5 text-xs font-racing font-bold rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-900/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">SUMAR MINUTOS</span>
+                </button>
+                <button onclick="openResetModal()" class="px-3 py-1.5 text-xs font-racing font-bold rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 transition flex items-center gap-1.5" title="Red Flag Reset">
+                    <i class="fa-solid fa-flag"></i> <span class="hidden sm:inline">REINICIAR TODO</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full px-4 lg:px-8 py-6 space-y-8 flex-grow">
+
+        <!-- CURRENT DRIVER BANNER HERO -->
+        <section id="driver-hero-card" class="rounded-2xl p-6 transition-all duration-500 relative overflow-hidden border">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-racing font-black select-none pointer-events-none" id="driver-bg-number">
+                1
+            </div>
+
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div class="flex items-center gap-5">
+                    <div id="driver-avatar-box" class="w-20 h-20 rounded-2xl flex items-center justify-center font-racing font-black text-2xl shadow-xl border-2">
+                        VER
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="driver-team-badge" class="px-2.5 py-0.5 rounded text-[10px] font-racing uppercase font-bold tracking-wider">
+                                Red Bull Racing
+                            </span>
+                            <span id="driver-number-badge" class="text-xs font-racing font-bold text-slate-400">
+                                #1
+                            </span>
+                        </div>
+                        <h1 id="driver-name-display" class="text-2xl md:text-3xl font-racing font-black tracking-wide mt-1">
+                            MAX VERSTAPPEN
+                        </h1>
+                        <p id="driver-motto" class="text-xs text-slate-400 mt-0.5 italic">
+                            "Simply Lovely. Repasando histología felina en Suzukat."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Quick Telemetry Stats (1 min = 1 pt) -->
+                <div class="grid grid-cols-3 gap-3 w-full md:w-auto text-center">
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                        <div class="text-[10px] font-racing text-slate-400 uppercase">PUNTOS (1 min = 1 pt)</div>
+                        <div id="hero-points" class="text-xl font-racing font-black text-yellow-400">0 PTS</div>
+                    </div>
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                        <div class="text-[10px] font-racing text-slate-400 uppercase">TIEMPO TOTAL</div>
+                        <div id="hero-time" class="text-xl font-racing font-bold text-slate-100">0h 0m</div>
+                    </div>
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                        <div class="text-[10px] font-racing text-slate-400 uppercase">STINTS</div>
+                        <div id="hero-stints" class="text-xl font-racing font-bold text-emerald-400">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUZUKAT & DOG CIRCUIT TRACK & VET SECTORS -->
+        <section class="racing-glass rounded-2xl p-6 relative overflow-hidden border border-slate-800">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                <div>
+                    <h2 class="font-racing font-bold text-lg flex items-center gap-2 text-slate-100">
+                        <i class="fa-solid fa-cat text-red-500"></i> CIRCUITO DE SUZUKAT & DOG
+                    </h2>
+                    <p class="text-xs text-slate-400">
+                        Telemetría en vivo. Todos los pilotos parten desde la Meta (0 pts) y avanzan en la pista según sus minutos estudiados.
+                    </p>
+                </div>
+
+                <!-- Goal / Target Settings Quick Bar -->
+                <div class="flex items-center gap-3 bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
+                    <span class="text-xs font-racing text-slate-400">META GP:</span>
+                    <input type="number" id="monthly-target-input" min="10" max="10000" value="1200" onchange="updateMonthlyTarget(this.value)" 
+                           class="w-20 bg-slate-900 border border-slate-700 rounded text-center text-xs font-racing font-bold text-yellow-400 focus:outline-none focus:border-red-500 py-1">
+                    <span class="text-xs font-racing text-slate-400">MINUTOS (PTS)</span>
+                </div>
+            </div>
+
+            <!-- Suzukat Canvas Track Container -->
+            <div class="track-container shadow-2xl p-2 relative">
+                <canvas id="suzuka-track-canvas" class="w-full h-[400px] sm:h-[500px] block rounded-lg cursor-crosshair"></canvas>
+
+                <!-- Driver Live Telemetry Dots Legend -->
+                <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800/80 text-[11px] font-racing space-y-1.5">
+                    <div class="flex items-center gap-2 text-yellow-400">
+                        <span class="w-3 h-3 rounded-full bg-[#0600EF] border border-yellow-400 inline-block shadow-[0_0_8px_#FCD700]"></span> VER (MAX)
+                    </div>
+                    <div class="flex items-center gap-2 text-red-400">
+                        <span class="w-3 h-3 rounded-full bg-[#E8002D] border border-white inline-block shadow-[0_0_8px_#E8002D]"></span> LEC (CHARLES)
+                    </div>
+                    <div class="flex items-center gap-2 text-teal-300">
+                        <span class="w-3 h-3 rounded-full bg-[#27F4D2] border border-slate-950 inline-block shadow-[0_0_8px_#27F4D2]"></span> RUS (GEORGE)
+                    </div>
+                </div>
+
+                <!-- Vet Sectors Badge -->
+                <div class="absolute top-4 left-4 hidden lg:flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800 text-[10px] font-racing text-slate-300">
+                    <span class="text-red-400 font-bold">SECTOR 1:</span> Asa de Henle | 
+                    <span class="text-yellow-400 font-bold">SECTOR 2:</span> Curva del Moquillo | 
+                    <span class="text-teal-400 font-bold">SECTOR 3:</span> Chicane Coprocultivo 🐾
+                </div>
+
+                <!-- Live Race Leader Widget Overlay -->
+                <div id="race-leader-badge" class="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-3 shadow-xl">
+                    <i class="fa-solid fa-trophy text-yellow-400 text-lg"></i>
+                    <div>
+                        <div class="text-[9px] font-racing text-slate-400 uppercase">LÍDER EN PISTA</div>
+                        <div id="leader-badge-name" class="text-xs font-racing font-black text-white">MAX VERSTAPPEN</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PIT WALL TIMER DASHBOARD -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Main Telemetry Timer (8 cols) -->
+            <div class="lg:col-span-7 xl:col-span-8 space-y-6">
+                <div class="racing-glass rounded-2xl p-6 lg:p-8 relative overflow-hidden">
+                    
+                    <!-- Mode Switcher (Stint vs Pit Stop) -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-2 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                            <button onclick="setTimerMode('stint')" id="mode-btn-stint" class="px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 bg-red-600 text-white shadow-md">
+                                <i class="fa-solid fa-brain"></i> STINT DE FOCUS VET
+                            </button>
+                            <button onclick="setTimerMode('pit')" id="mode-btn-pit" class="px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 text-slate-400 hover:text-white">
+                                <i class="fa-solid fa-cookie-bite"></i> PIT STOP (CROQUETAS & CAFÉ)
+                            </button>
+                        </div>
+
+                        <!-- Telemetry Status Indicator -->
+                        <div id="telemetry-status" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-racing">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> TELEMETRÍA OK (1 MIN = 1 PT)
+                        </div>
+                    </div>
+
+                    <!-- Preset Time Selector Quick Buttons -->
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="text-xs font-racing text-slate-400 self-center mr-2">Estrategia Vet:</span>
+                        <button onclick="setPresetTime(15)" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-racing border border-slate-800 transition">15 MIN (+15 PTS)</button>
+                        <button onclick="setPresetTime(25)" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-racing border border-slate-800 transition">25 MIN (+25 PTS)</button>
+                        <button onclick="setPresetTime(45)" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-racing border border-slate-800 transition">45 MIN (+45 PTS)</button>
+                        <button onclick="setPresetTime(60)" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-racing border border-slate-800 transition">60 MIN (+60 PTS)</button>
+                        <button onclick="promptCustomTime()" class="px-3 py-1.5 rounded-lg bg-slate-900/50 hover:bg-slate-800 text-xs font-racing text-slate-400 border border-dashed border-slate-700 transition">
+                            <i class="fa-solid fa-sliders"></i> Personalizado
+                        </button>
+                    </div>
+
+                    <!-- F1 START LIGHTS ANIMATION BAR -->
+                    <div class="mb-8 bg-slate-950 p-4 rounded-xl border border-slate-800/80 shadow-inner flex flex-col items-center">
+                        <div class="text-[10px] font-racing text-slate-500 uppercase tracking-widest mb-2">Semáforo FIA / Anestesia en Pista</div>
+                        <div class="flex items-center gap-3 sm:gap-6 bg-slate-900 px-6 py-3 rounded-lg border border-slate-800">
+                            <!-- 5 F1 Lights -->
+                            <div id="f1-light-1" class="f1-light w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-slate-800 transition-all"></div>
+                            <div id="f1-light-2" class="f1-light w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-slate-800 transition-all"></div>
+                            <div id="f1-light-3" class="f1-light w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-slate-800 transition-all"></div>
+                            <div id="f1-light-4" class="f1-light w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-slate-800 transition-all"></div>
+                            <div id="f1-light-5" class="f1-light w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-slate-800 transition-all"></div>
+                        </div>
+                    </div>
+
+                    <!-- MAIN DIGITAL DISPLAY & SPEEDOMETER RING -->
+                    <div class="relative flex flex-col items-center justify-center my-6">
+                        <div class="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90 drop-shadow-2xl">
+                                <circle cx="50%" cy="50%" r="42%" class="stroke-slate-900 fill-none" stroke-width="12"></circle>
+                                <circle id="timer-progress-ring" cx="50%" cy="50%" r="42%" 
+                                        class="stroke-red-600 fill-none transition-all duration-500 ease-linear" 
+                                        stroke-width="12" 
+                                        stroke-dasharray="750" 
+                                        stroke-dashoffset="0" 
+                                        stroke-linecap="round">
+                                </circle>
+                            </svg>
+
+                            <div class="absolute text-center flex flex-col items-center">
+                                <span id="timer-mode-label" class="text-xs font-racing text-slate-400 uppercase tracking-widest mb-1">STINT DE FOCUS VET</span>
+                                <div id="timer-display" class="font-racing text-5xl sm:text-6xl font-black tracking-tighter text-white drop-shadow-md">
+                                    25:00
+                                </div>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <span id="rpm-indicator" class="text-[10px] font-racing text-slate-500 uppercase">RPM: <span class="text-red-500">OFF</span></span>
+                                    <span class="text-slate-700">|</span>
+                                    <span id="drs-indicator" class="text-[10px] font-racing text-slate-500 uppercase">DRS: <span class="text-slate-600">LOCKED</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject / Activity Input -->
+                    <div class="max-w-md mx-auto mb-8">
+                        <label class="block text-xs font-racing text-slate-400 mb-1">MATERIA VETERINARIA A ESTUDIAR:</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-microscope absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="subject-input" placeholder="Ej. Anatomía, Fisiología, Cirugía..." 
+                                   class="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 transition font-sans">
+                        </div>
+                    </div>
+
+                    <!-- Main Timer Action Controls -->
+                    <div class="flex flex-wrap justify-center items-center gap-4">
+                        <button onclick="startTimerSequence()" id="start-btn" 
+                                class="px-8 py-4 rounded-xl font-racing font-black text-sm tracking-wider uppercase bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-xl shadow-red-900/40 hover:scale-105 transition-all flex items-center gap-3">
+                            <i class="fa-solid fa-play text-lg"></i> SALIR A PISTA
+                        </button>
+                        
+                        <button onclick="pauseTimer()" id="pause-btn" disabled 
+                                class="px-6 py-4 rounded-xl font-racing font-bold text-sm tracking-wider uppercase bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2">
+                            <i class="fa-solid fa-pause"></i> PAUSAR
+                        </button>
+
+                        <button onclick="resetTimer()" id="reset-btn" 
+                                class="px-4 py-4 rounded-xl font-racing font-bold text-xs tracking-wider uppercase bg-slate-900/60 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Column: World Driver Standings Leaderboard (4 cols) -->
+            <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+                
+                <div class="racing-glass rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-racing font-bold text-base flex items-center gap-2 text-slate-100">
+                            <i class="fa-solid fa-trophy text-yellow-400"></i> CAMPEONATO MUNDIAL VET
+                        </h2>
+                        <span class="text-[10px] font-racing text-slate-400 bg-slate-900 border border-slate-800 px-2 py-1 rounded">
+                            SUZUKAT GP
+                        </span>
+                    </div>
+
+                    <!-- Leaderboard Drivers List -->
+                    <div id="standings-list" class="space-y-3">
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+                        <p class="text-[11px] text-slate-400 italic">
+                            <span class="text-yellow-400 font-bold">1 Minuto de Estudio = 1 Punto GP</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- DRS / Focus Streak Widget -->
+                <div class="racing-glass rounded-2xl p-5 border-l-4 border-l-emerald-500 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-racing text-emerald-400 uppercase font-bold tracking-wider">MODO DRS EN SUZUKAT</span>
+                        <h4 id="streak-counter" class="text-xl font-racing font-black text-white mt-0.5">3 STINTS HOY</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Focus sostenido en boxes.</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl font-racing font-black">
+                        🐾
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BOTTOM HISTORIAL DE TELEMETRÍA (LOGS) -->
+        <section class="racing-glass rounded-2xl p-6">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                <div>
+                    <h3 class="font-racing font-bold text-lg flex items-center gap-2 text-slate-100">
+                        <i class="fa-solid fa-notes-medical text-red-500"></i> HISTORIAL DE CONSULTAS & TELEMETRÍA
+                    </h3>
+                    <p class="text-xs text-slate-400">Registro oficial de minutos y puntos ganados en Suzukat & Dog.</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950/80 font-racing text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                        <tr>
+                            <th class="p-3">PILOTO VET</th>
+                            <th class="p-3">FECHA Y HORA</th>
+                            <th class="p-3">MATERIA / TEMA</th>
+                            <th class="p-3">DURACIÓN</th>
+                            <th class="p-3 text-right">PUNTOS GANADOS (1m = 1pt)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="telemetry-log-body" class="divide-y divide-slate-800/50">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-4 px-4 text-center text-xs text-slate-600 font-racing">
+        FOCUS GP - CIRCUITO INTERNACIONAL DE SUZUKAT & DOG &copy; <span id="year-span"></span> | RED BULL • FERRARI • MERCEDES
+    </footer>
+
+    <!-- MODAL PARA AÑADIR TIEMPO MANUALMENTE -->
+    <div id="manual-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="racing-glass bg-slate-900 rounded-2xl border border-slate-800 max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeManualAddModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="font-racing font-bold text-lg text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-stethoscope text-yellow-400"></i> REGISTRO MANUAL DE MINUTOS
+            </h3>
+            <p class="text-xs text-slate-400 mb-6">Cada 1 minuto equivale exactamente a 1 Punto GP.</p>
+
+            <form onsubmit="handleManualAddSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-racing text-slate-400 mb-1">SELECCIONA PILOTO VET:</label>
+                    <select id="manual-driver-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs font-racing text-slate-100 focus:outline-none focus:border-red-500">
+                        <option value="max">VER (MAX VERSTAPPEN)</option>
+                        <option value="charles">LEC (CHARLES LECLERC)</option>
+                        <option value="george">RUS (GEORGE RUSSELL)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-racing text-slate-400 mb-1">MINUTOS ESTUDIADOS (1 min = 1 pt):</label>
+                    <input type="number" id="manual-minutes-input" min="1" max="1000" value="30" required 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:outline-none focus:border-red-500 font-sans">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-racing text-slate-400 mb-1">MATERIA / TEMA VET:</label>
+                    <input type="text" id="manual-subject-input" placeholder="Ej. Anatomía, Parasitología..." required 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:outline-none focus:border-red-500 font-sans">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="closeManualAddModal()" class="px-4 py-2 rounded-xl text-xs font-racing text-slate-400 hover:text-white bg-slate-950 border border-slate-800">
+                        CANCELAR
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-racing font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg">
+                        GUARDAR Y SUMAR PUNTOS
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN DE REINICIO TOTAL (RED FLAG RESET) -->
+    <div id="reset-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="racing-glass bg-slate-900 rounded-2xl border-2 border-red-600/60 max-w-md w-full p-6 shadow-2xl relative">
+            <div class="w-12 h-12 rounded-full bg-red-600/20 border border-red-500/40 text-red-500 flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <h3 class="font-racing font-black text-xl text-center text-white mb-2">
+                🚩 RED FLAG: ¿REINICIAR COMPETENCIA?
+            </h3>
+            
+            <p class="text-xs text-slate-300 text-center mb-6 leading-relaxed">
+                ¿Estás segura de que deseas reiniciar <span class="text-red-400 font-bold">TODOS</span> los puntos, horas estudiadas, historial de telemetría y posiciones de pista?
+                <br><br>
+                <span class="text-yellow-400 font-bold">Todos los pilotos volverán a la Línea de Meta (0 puntos). Esta acción es irreversible.</span>
+            </p>
+
+            <div class="flex justify-center gap-3">
+                <button onclick="closeResetModal()" class="w-1/2 py-2.5 rounded-xl text-xs font-racing font-bold text-slate-300 bg-slate-950 border border-slate-800 hover:bg-slate-800 transition">
+                    CANCELAR
+                </button>
+                <button onclick="executeFullReset()" class="w-1/2 py-2.5 rounded-xl text-xs font-racing font-black text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-900/50 transition">
+                    SÍ, REINICIAR COMPETENCIA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* Driver Config */
+        const DRIVERS_CONFIG = {
+            max: {
+                id: 'max',
+                name: 'MAX VERSTAPPEN',
+                shortName: 'VER',
+                number: '#1',
+                team: 'Red Bull Racing Vet',
+                color: '#0600EF',
+                accentColor: '#FCD700',
+                textColor: '#020617',
+                badgeBg: 'bg-yellow-400 text-slate-950',
+                cardBorder: 'border-yellow-500/40',
+                motto: '"Simply Lovely. Repasando histología felina en Suzukat."',
+                glow: '#FCD700'
+            },
+            charles: {
+                id: 'charles',
+                name: 'CHARLES LECLERC',
+                shortName: 'LEC',
+                number: '#16',
+                team: 'Scuderia Ferrari Vet',
+                color: '#E8002D',
+                accentColor: '#FFFFFF',
+                textColor: '#FFFFFF',
+                badgeBg: 'bg-red-600 text-white',
+                cardBorder: 'border-red-600/40',
+                motto: '"Forza Scuderia! Dominando la Asa de Henle sin vacilar."',
+                glow: '#E8002D'
+            },
+            george: {
+                id: 'george',
+                name: 'GEORGE RUSSELL',
+                shortName: 'RUS',
+                number: '#63',
+                team: 'Mercedes-AMG Vet',
+                color: '#27F4D2',
+                accentColor: '#0f172a',
+                textColor: '#020617',
+                badgeBg: 'bg-teal-400 text-slate-950',
+                cardBorder: 'border-teal-400/40',
+                motto: '"Blimey! Análisis de coprocultivo perfecto a 300 km/h."',
+                glow: '#27F4D2'
+            }
+        };
+
+        /* State Variables */
+        let activeDriverId = 'max';
+        let monthlyTargetMinutes = 1200; // Default 1200 mins target (1 lap = 1200 pts)
+        let standings = {
+            max: { totalMinutes: 0, points: 0, stints: 0 },
+            charles: { totalMinutes: 0, points: 0, stints: 0 },
+            george: { totalMinutes: 0, points: 0, stints: 0 }
+        };
+        let telemetryHistory = [];
+
+        // Driver track positions (0.0 to 1.0)
+        let carPositions = { max: 0.0, charles: 0.0, george: 0.0 };
+        let targetCarPositions = { max: 0.0, charles: 0.0, george: 0.0 };
+
+        // Timer Engine Variables
+        let timerMode = 'stint';
+        let timerDurationMinutes = 25;
+        let totalTimeSeconds = 25 * 60;
+        let remainingSeconds = 25 * 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let audioEnabled = true;
+
+        /* Web Audio Engine */
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audio-toggle-btn');
+            btn.innerHTML = audioEnabled 
+                ? '<i class="fa-solid fa-volume-high text-sm text-emerald-400"></i>' 
+                : '<i class="fa-solid fa-volume-xmark text-sm text-slate-500"></i>';
+        }
+
+        function playLightBeep(pitch = 440, duration = 0.12) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(pitch, ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playF1EngineSound() {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sawtooth';
+                
+                const now = ctx.currentTime;
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(650, now + 1.2);
+                osc.frequency.linearRampToValueAtTime(400, now + 2.0);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.5);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(now + 2.0);
+            } catch (e) {}
+        }
+
+        function playFinishFanfare() {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.15 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + idx * 0.15);
+                    osc.stop(ctx.currentTime + idx * 0.15 + 0.4);
+                });
+            } catch (e) {}
+        }
+
+        /* Data Persistence */
+        function loadSavedData() {
+            const savedStandings = localStorage.getItem('focus_gp_standings');
+            if (savedStandings) {
+                try { standings = JSON.parse(savedStandings); } catch (e) {}
+            }
+
+            const savedTarget = localStorage.getItem('focus_gp_monthly_target');
+            if (savedTarget) {
+                monthlyTargetMinutes = parseInt(savedTarget) || 1200;
+                const input = document.getElementById('monthly-target-input');
+                if (input) input.value = monthlyTargetMinutes;
+            }
+
+            const savedHistory = localStorage.getItem('focus_gp_history');
+            if (savedHistory) {
+                try { telemetryHistory = JSON.parse(savedHistory); } catch (e) {}
+            }
+
+            const savedActive = localStorage.getItem('focus_gp_active_driver');
+            if (savedActive && DRIVERS_CONFIG[savedActive]) {
+                activeDriverId = savedActive;
+            }
+
+            calculateTargetPositions();
+        }
+
+        function saveData() {
+            localStorage.setItem('focus_gp_standings', JSON.stringify(standings));
+            localStorage.setItem('focus_gp_history', JSON.stringify(telemetryHistory));
+            localStorage.setItem('focus_gp_active_driver', activeDriverId);
+            localStorage.setItem('focus_gp_monthly_target', monthlyTargetMinutes);
+        }
+
+        function updateMonthlyTarget(val) {
+            const num = parseInt(val);
+            if (num && num > 0) {
+                monthlyTargetMinutes = num;
+                saveData();
+                calculateTargetPositions();
+            }
+        }
+
+        /* 
+           Positions Calculation:
+           When points = 0, position is 0.0 (exact Finish / Start line).
+        */
+        function calculateTargetPositions() {
+            const targetMins = monthlyTargetMinutes || 1200;
+            
+            const driverIds = ['max', 'charles', 'george'];
+            driverIds.forEach((id) => {
+                const mins = standings[id] ? standings[id].totalMinutes : 0;
+                if (mins <= 0) {
+                    targetCarPositions[id] = 0.0; // Exact Start Line
+                } else {
+                    let pct = mins / targetMins;
+                    if (pct > 0.98) pct = 0.98;
+                    targetCarPositions[id] = Math.max(0.001, pct);
+                }
+            });
+        }
+
+        /* Suzuka Canvas Renderer */
+        let trackCanvas, trackCtx;
+
+        function initTrackCanvas() {
+            trackCanvas = document.getElementById('suzuka-track-canvas');
+            if (!trackCanvas) return;
+            trackCtx = trackCanvas.getContext('2d');
+            resizeTrackCanvas();
+            window.addEventListener('resize', resizeTrackCanvas);
+            requestAnimationFrame(animateTrackLoop);
+        }
+
+        function resizeTrackCanvas() {
+            if (!trackCanvas) return;
+            const rect = trackCanvas.parentElement.getBoundingClientRect();
+            trackCanvas.width = rect.width * (window.devicePixelRatio || 1);
+            trackCanvas.height = (rect.width < 640 ? 400 : 500) * (window.devicePixelRatio || 1);
+        }
+
+        function getSuzukaTrackPoint(u, width, height) {
+            const scaleX = width * 0.72;
+            const scaleY = height * 0.78;
+            const offsetX = width * 0.48;
+            const offsetY = height * 0.52;
+
+            const t = ((u % 1.0) + 1.0) % 1.0;
+            
+            let nx = 0;
+            let ny = 0;
+
+            if (t <= 0.12) {
+                const p = t / 0.12;
+                nx = -0.35 + p * 0.35;
+                ny = 0.38 - p * 0.08;
+            } else if (t <= 0.28) {
+                const p = (t - 0.12) / 0.16;
+                const angle = p * Math.PI * 1.8;
+                nx = 0.00 - Math.sin(angle) * 0.12 + p * 0.05;
+                ny = 0.30 - p * 0.45;
+            } else if (t <= 0.40) {
+                const p = (t - 0.28) / 0.12;
+                nx = 0.05 + Math.sin(p * Math.PI) * 0.15;
+                ny = -0.15 - p * 0.05;
+            } else if (t <= 0.52) {
+                const p = (t - 0.40) / 0.12;
+                nx = 0.20 - Math.sin(p * Math.PI * 1.2) * 0.22;
+                ny = -0.20 + p * 0.25;
+            } else if (t <= 0.70) {
+                const p = (t - 0.52) / 0.18;
+                const angle = p * Math.PI * 1.1;
+                nx = -0.02 + Math.cos(angle) * 0.32;
+                ny = 0.05 - Math.sin(angle) * 0.42;
+            } else if (t <= 0.88) {
+                const p = (t - 0.70) / 0.18;
+                nx = -0.34 + p * 0.22;
+                ny = -0.37 + p * 0.55;
+            } else {
+                const p = (t - 0.88) / 0.12;
+                nx = -0.12 - p * 0.23;
+                ny = 0.18 + p * 0.20;
+            }
+
+            const px = offsetX + nx * scaleX;
+            const py = offsetY + ny * scaleY;
+
+            return { x: px, y: py };
+        }
+
+        function animateTrackLoop() {
+            if (!trackCtx || !trackCanvas) return;
+
+            const w = trackCanvas.width;
+            const h = trackCanvas.height;
+            const dpi = window.devicePixelRatio || 1;
+
+            // Smooth interpolation
+            Object.keys(carPositions).forEach(id => {
+                const target = targetCarPositions[id] || 0.0;
+                carPositions[id] += (target - carPositions[id]) * 0.04;
+            });
+
+            trackCtx.clearRect(0, 0, w, h);
+
+            trackCtx.fillStyle = '#090d16';
+            trackCtx.fillRect(0, 0, w, h);
+
+            const numPoints = 400;
+            const trackPath = [];
+            for (let i = 0; i <= numPoints; i++) {
+                trackPath.push(getSuzukaTrackPoint(i / numPoints, w, h));
+            }
+
+            // Glow
+            trackCtx.save();
+            trackCtx.beginPath();
+            trackCtx.lineWidth = 18 * dpi;
+            trackCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            trackCtx.lineCap = 'round';
+            trackCtx.lineJoin = 'round';
+            for (let i = 0; i < trackPath.length; i++) {
+                if (i === 0) trackCtx.moveTo(trackPath[i].x, trackPath[i].y);
+                else trackCtx.lineTo(trackPath[i].x, trackPath[i].y);
+            }
+            trackCtx.stroke();
+
+            // Track Outline
+            trackCtx.beginPath();
+            trackCtx.lineWidth = 12 * dpi;
+            trackCtx.strokeStyle = '#e2e8f0';
+            for (let i = 0; i < trackPath.length; i++) {
+                if (i === 0) trackCtx.moveTo(trackPath[i].x, trackPath[i].y);
+                else trackCtx.lineTo(trackPath[i].x, trackPath[i].y);
+            }
+            trackCtx.stroke();
+
+            // Inner Asphalt
+            trackCtx.beginPath();
+            trackCtx.lineWidth = 6 * dpi;
+            trackCtx.strokeStyle = '#0f172a';
+            for (let i = 0; i < trackPath.length; i++) {
+                if (i === 0) trackCtx.moveTo(trackPath[i].x, trackPath[i].y);
+                else trackCtx.lineTo(trackPath[i].x, trackPath[i].y);
+            }
+            trackCtx.stroke();
+
+            drawSectorMarkers(trackCtx, w, h, dpi);
+
+            // Start / Finish Line
+            const startPt = getSuzukaTrackPoint(0.0, w, h);
+            trackCtx.beginPath();
+            trackCtx.arc(startPt.x, startPt.y, 5 * dpi, 0, Math.PI * 2);
+            trackCtx.fillStyle = '#ef4444';
+            trackCtx.fill();
+
+            trackCtx.fillStyle = '#ffffff';
+            trackCtx.font = `bold ${11 * dpi}px Orbitron, sans-serif`;
+            trackCtx.fillText('🏁 META SUZUKAT 🐱', startPt.x + 8 * dpi, startPt.y - 8 * dpi);
+
+            // Draw Driver Telemetry Dots
+            const allDrivers = ['max', 'charles', 'george'];
+            const sortedDriverIds = allDrivers.sort((a, b) => carPositions[a] - carPositions[b]);
+
+            sortedDriverIds.forEach(id => {
+                const pos = carPositions[id];
+                const pt = getSuzukaTrackPoint(pos, w, h);
+                drawDriverDot(trackCtx, pt.x, pt.y, DRIVERS_CONFIG[id], standings[id], dpi);
+            });
+
+            const leaderId = sortedDriverIds[sortedDriverIds.length - 1];
+            if (leaderId && DRIVERS_CONFIG[leaderId]) {
+                const badgeEl = document.getElementById('leader-badge-name');
+                if (badgeEl) badgeEl.innerText = DRIVERS_CONFIG[leaderId].name;
+            }
+
+            requestAnimationFrame(animateTrackLoop);
+        }
+
+        function drawSectorMarkers(ctx, w, h, dpi) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = `bold ${8 * dpi}px Orbitron, sans-serif`;
+
+            const s1 = getSuzukaTrackPoint(0.20, w, h);
+            ctx.fillText('🐾 ASA DE HENLE', s1.x - 30 * dpi, s1.y - 10 * dpi);
+
+            const s2 = getSuzukaTrackPoint(0.60, w, h);
+            ctx.fillText('🦴 CURVA MOQUILLO', s2.x + 10 * dpi, s2.y + 10 * dpi);
+
+            const s3 = getSuzukaTrackPoint(0.88, w, h);
+            ctx.fillText('💩 CASIO COPROCULTIVO', s3.x - 45 * dpi, s3.y + 15 * dpi);
+        }
+
+        function drawDriverDot(ctx, x, y, config, driverData, dpi) {
+            const radius = 15 * dpi;
+
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius + 3 * dpi, 0, Math.PI * 2);
+            ctx.fillStyle = config.glow;
+            ctx.globalAlpha = 0.35;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fillStyle = config.color;
+            ctx.fill();
+
+            ctx.lineWidth = 2.5 * dpi;
+            ctx.strokeStyle = config.accentColor;
+            ctx.stroke();
+
+            ctx.fillStyle = config.textColor;
+            ctx.font = `black ${10 * dpi}px Orbitron, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(config.shortName, 0, 0.5 * dpi);
+
+            const pts = driverData ? driverData.points : 0;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(-20 * dpi, -radius - 16 * dpi, 40 * dpi, 12 * dpi, 3 * dpi);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1 * dpi;
+            ctx.stroke();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = `bold ${8 * dpi}px Orbitron, sans-serif`;
+            ctx.fillText(`${pts} PTS`, 0, -radius - 10 * dpi);
+
+            ctx.restore();
+        }
+
+        /* UI Methods */
+        function setActiveDriver(driverId) {
+            activeDriverId = driverId;
+            const driver = DRIVERS_CONFIG[driverId];
+
+            document.querySelectorAll('.driver-nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white', 'border', 'border-slate-700');
+                btn.classList.add('text-slate-400');
+            });
+            const activeNavBtn = document.getElementById(`nav-btn-${driverId}`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-700');
+                activeNavBtn.classList.remove('text-slate-400');
+            }
+
+            const heroCard = document.getElementById('driver-hero-card');
+            heroCard.className = `rounded-2xl p-6 transition-all duration-500 relative overflow-hidden bg-slate-900/90 border ${driver.cardBorder}`;
+            
+            document.getElementById('driver-bg-number').innerText = driver.number.replace('#', '');
+            document.getElementById('driver-avatar-box').innerText = driver.shortName;
+            document.getElementById('driver-avatar-box').className = `w-20 h-20 rounded-2xl flex items-center justify-center font-racing font-black text-2xl shadow-xl border-2 ${driver.badgeBg}`;
+            
+            document.getElementById('driver-team-badge').innerText = driver.team;
+            document.getElementById('driver-team-badge').className = `px-2.5 py-0.5 rounded text-[10px] font-racing uppercase font-bold tracking-wider ${driver.badgeBg}`;
+            
+            document.getElementById('driver-number-badge').innerText = driver.number;
+            document.getElementById('driver-name-display').innerText = driver.name;
+            document.getElementById('driver-motto').innerText = driver.motto;
+
+            updateHeroStats();
+            renderStandings();
+            saveData();
+        }
+
+        function updateHeroStats() {
+            const data = standings[activeDriverId] || { totalMinutes: 0, points: 0, stints: 0 };
+            document.getElementById('hero-points').innerText = `${data.points} PTS`;
+            
+            const hours = Math.floor(data.totalMinutes / 60);
+            const mins = data.totalMinutes % 60;
+            document.getElementById('hero-time').innerText = `${hours}h ${mins}m`;
+            
+            document.getElementById('hero-stints').innerText = data.stints;
+        }
+
+        function renderStandings() {
+            const container = document.getElementById('standings-list');
+            container.innerHTML = '';
+
+            const sortedDrivers = Object.keys(DRIVERS_CONFIG).map(id => {
+                return {
+                    id,
+                    ...DRIVERS_CONFIG[id],
+                    ...(standings[id] || { totalMinutes: 0, points: 0, stints: 0 })
+                };
+            }).sort((a, b) => b.points - a.points || b.totalMinutes - a.totalMinutes);
+
+            sortedDrivers.forEach((driver, index) => {
+                const pos = index + 1;
+                const hours = Math.floor(driver.totalMinutes / 60);
+                const mins = driver.totalMinutes % 60;
+                const isActive = driver.id === activeDriverId;
+
+                const cardHtml = `
+                    <div onclick="setActiveDriver('${driver.id}')" 
+                         class="cursor-pointer p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+                             isActive 
+                             ? 'bg-slate-800/90 border-slate-600 shadow-md scale-[1.01]' 
+                             : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-900'
+                         }">
+                        <div class="flex items-center gap-3">
+                            <span class="font-racing font-black text-sm ${pos === 1 ? 'text-yellow-400' : pos === 2 ? 'text-slate-300' : 'text-amber-700'} w-5">
+                                P${pos}
+                            </span>
+                            <div class="w-3 h-8 rounded-full flex items-center justify-center font-racing font-bold text-[9px]" style="background-color: ${driver.color}">
+                            </div>
+                            <div>
+                                <h4 class="font-racing font-bold text-xs text-slate-100 flex items-center gap-2">
+                                    ${driver.name}
+                                    ${isActive ? '<span class="text-[9px] bg-red-600/30 text-red-400 px-1.5 py-0.5 rounded font-sans">TU PILOTO</span>' : ''}
+                                </h4>
+                                <span class="text-[10px] text-slate-400 font-sans">${driver.team} • ${driver.stints} Stints</span>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <div class="font-racing font-black text-sm text-yellow-400">${driver.points} PTS</div>
+                            <div class="text-[10px] font-racing text-slate-400">${hours}h ${mins}m (${driver.totalMinutes}m)</div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        function renderTelemetryLog() {
+            const tbody = document.getElementById('telemetry-log-body');
+            tbody.innerHTML = '';
+
+            if (telemetryHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="p-6 text-center text-slate-500 italic font-sans">
+                            Aún no hay telemetría de estudio registrada en el GP de Suzukat & Dog.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            telemetryHistory.slice().reverse().forEach(log => {
+                const driver = DRIVERS_CONFIG[log.driverId] || { name: log.driverId, badgeBg: 'bg-slate-800' };
+                const row = `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-racing uppercase font-bold ${driver.badgeBg}">
+                                ${driver.shortName || driver.name}
+                            </span>
+                        </td>
+                        <td class="p-3 font-mono text-slate-400">${log.date}</td>
+                        <td class="p-3 font-semibold text-slate-200">${log.subject}</td>
+                        <td class="p-3 font-racing text-slate-300">${log.duration} MIN</td>
+                        <td class="p-3 text-right font-racing font-bold text-emerald-400">+${log.points} PTS</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        /* Timer Engine */
+        function setTimerMode(mode) {
+            if (isTimerRunning) return;
+            timerMode = mode;
+
+            const modeStintBtn = document.getElementById('mode-btn-stint');
+            const modePitBtn = document.getElementById('mode-btn-pit');
+            const timerModeLabel = document.getElementById('timer-mode-label');
+
+            if (mode === 'stint') {
+                modeStintBtn.className = "px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 bg-red-600 text-white shadow-md";
+                modePitBtn.className = "px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 text-slate-400 hover:text-white";
+                timerModeLabel.innerText = "STINT DE FOCUS VET";
+                setPresetTime(25);
+            } else {
+                modePitBtn.className = "px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 bg-teal-600 text-white shadow-md";
+                modeStintBtn.className = "px-4 py-2 rounded-lg text-xs font-racing font-bold transition flex items-center gap-2 text-slate-400 hover:text-white";
+                timerModeLabel.innerText = "PIT STOP (CROQUETAS & CAFÉ)";
+                setPresetTime(5);
+            }
+        }
+
+        function setPresetTime(minutes) {
+            if (isTimerRunning) return;
+            timerDurationMinutes = minutes;
+            totalTimeSeconds = minutes * 60;
+            remainingSeconds = totalTimeSeconds;
+            updateTimerDisplay();
+        }
+
+        function promptCustomTime() {
+            if (isTimerRunning) return;
+            const input = prompt("Introduce los minutos de estudio para este stint:", "30");
+            const mins = parseInt(input);
+            if (mins && mins > 0 && mins <= 300) {
+                setPresetTime(mins);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('timer-display').innerText = formatted;
+
+            document.title = `${formatted} - ${timerMode === 'stint' ? 'Suzukat Focus GP' : 'Pit Stop'}`;
+
+            const circle = document.getElementById('timer-progress-ring');
+            const maxOffset = 750;
+            const progress = remainingSeconds / totalTimeSeconds;
+            const offset = maxOffset - (progress * maxOffset);
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function startTimerSequence() {
+            if (isTimerRunning) return;
+
+            const startBtn = document.getElementById('start-btn');
+            startBtn.disabled = true;
+
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`f1-light-${i}`);
+                el.classList.remove('active', 'green');
+            }
+
+            let lightIndex = 1;
+            const lightInterval = setInterval(() => {
+                if (lightIndex <= 5) {
+                    const el = document.getElementById(`f1-light-${lightIndex}`);
+                    el.classList.add('active');
+                    playLightBeep(440, 0.12);
+                    lightIndex++;
+                } else {
+                    clearInterval(lightInterval);
+
+                    setTimeout(() => {
+                        for (let i = 1; i <= 5; i++) {
+                            const el = document.getElementById(`f1-light-${i}`);
+                            el.classList.remove('active');
+                            el.classList.add('green');
+                        }
+                        playLightBeep(880, 0.4);
+                        playF1EngineSound();
+
+                        startTimer();
+
+                        setTimeout(() => {
+                            for (let i = 1; i <= 5; i++) {
+                                document.getElementById(`f1-light-${i}`).classList.remove('green');
+                            }
+                        }, 2000);
+
+                    }, Math.floor(Math.random() * 1000) + 500);
+                }
+            }, 600);
+        }
+
+        function startTimer() {
+            isTimerRunning = true;
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+
+            document.getElementById('rpm-indicator').innerHTML = `RPM: <span class="text-emerald-400 font-bold animate-pulse-red">12,500</span>`;
+            document.getElementById('drs-indicator').innerHTML = `DRS: <span class="text-emerald-400 font-bold">ENABLED</span>`;
+
+            timerInterval = setInterval(() => {
+                if (remainingSeconds > 0) {
+                    remainingSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    completeTimerSession();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isTimerRunning) return;
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+
+            document.getElementById('rpm-indicator').innerHTML = `RPM: <span class="text-yellow-500">PAUSA</span>`;
+            document.getElementById('drs-indicator').innerHTML = `DRS: <span class="text-slate-600">LOCKED</span>`;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            remainingSeconds = totalTimeSeconds;
+            updateTimerDisplay();
+
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`f1-light-${i}`);
+                el.classList.remove('active', 'green');
+            }
+        }
+
+        /* 
+           Completing session:
+           EXACTLY 1 MINUTE = 1 POINT GP
+        */
+        function completeTimerSession() {
+            pauseTimer();
+            playFinishFanfare();
+
+            const subjectInput = document.getElementById('subject-input');
+            const subjectName = subjectInput.value.trim() || (timerMode === 'stint' ? 'Fisiología / Veterinaria' : 'Pit Stop Croquetas');
+
+            if (timerMode === 'stint') {
+                const minutesStudied = timerDurationMinutes;
+                const pointsEarned = minutesStudied; // 1 min = 1 point
+
+                if (!standings[activeDriverId]) {
+                    standings[activeDriverId] = { totalMinutes: 0, points: 0, stints: 0 };
+                }
+
+                standings[activeDriverId].totalMinutes += minutesStudied;
+                standings[activeDriverId].points += pointsEarned;
+                standings[activeDriverId].stints += 1;
+
+                const now = new Date();
+                telemetryHistory.push({
+                    driverId: activeDriverId,
+                    subject: subjectName,
+                    duration: minutesStudied,
+                    points: pointsEarned,
+                    date: `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                });
+
+                calculateTargetPositions();
+                saveData();
+                updateHeroStats();
+                renderStandings();
+                renderTelemetryLog();
+
+                alert(`🏁 ¡STINT DE ESTUDIO COMPLETADO EN SUZUKAT & DOG! 🐱🐶\n\nPiloto: ${DRIVERS_CONFIG[activeDriverId].name}\n+${minutesStudied} Minutos de Estudio = +${pointsEarned} Puntos GP acumulados.`);
+            } else {
+                alert(`🛠️ ¡PIT STOP DE CROQUETAS & CAFÉ FINALIZADO! Neumáticos blandos listos. ¡De vuelta a pista!`);
+            }
+
+            resetTimer();
+        }
+
+        /* Manual Add Modal */
+        function openManualAddModal() {
+            document.getElementById('manual-modal').classList.remove('hidden');
+        }
+
+        function closeManualAddModal() {
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+
+        function handleManualAddSubmit(e) {
+            e.preventDefault();
+            const driverId = document.getElementById('manual-driver-select').value;
+            const minutes = parseInt(document.getElementById('manual-minutes-input').value) || 0;
+            const subject = document.getElementById('manual-subject-input').value.trim() || 'Estudio Manual Vet';
+
+            if (minutes <= 0) return;
+
+            const pointsEarned = minutes; // 1 min = 1 point
+
+            if (!standings[driverId]) {
+                standings[driverId] = { totalMinutes: 0, points: 0, stints: 0 };
+            }
+
+            standings[driverId].totalMinutes += minutes;
+            standings[driverId].points += pointsEarned;
+            standings[driverId].stints += 1;
+
+            const now = new Date();
+            telemetryHistory.push({
+                driverId: driverId,
+                subject: subject,
+                duration: minutes,
+                points: pointsEarned,
+                date: `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+            });
+
+            calculateTargetPositions();
+            saveData();
+            updateHeroStats();
+            renderStandings();
+            renderTelemetryLog();
+            closeManualAddModal();
+        }
+
+        /* Red Flag Full Reset with Safety Confirmation */
+        function openResetModal() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function executeFullReset() {
+            telemetryHistory = [];
+            Object.keys(standings).forEach(id => {
+                standings[id] = { totalMinutes: 0, points: 0, stints: 0 };
+                carPositions[id] = 0.0;
+                targetCarPositions[id] = 0.0;
+            });
+
+            calculateTargetPositions();
+            saveData();
+            updateHeroStats();
+            renderStandings();
+            renderTelemetryLog();
+            closeResetModal();
+
+            alert("🚩 RED FLAG ACTIVADA: Se ha completado el reinicio de la competencia. Todos los pilotos han vuelto a la Línea de Meta (0 PTS).");
+        }
+
+        window.onload = function() {
+            document.getElementById('year-span').innerText = new Date().getFullYear();
+            loadSavedData();
+            initTrackCanvas();
+            setActiveDriver(activeDriverId);
+            renderTelemetryLog();
+            updateTimerDisplay();
+        };
+    </script>
+</body>
+</html>
